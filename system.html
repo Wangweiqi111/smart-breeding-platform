@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>养殖系统 - 智慧养殖平台</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 导航栏 -->
+<div class="nav">
+  <a href="index.html">首页</a>
+  <b>养殖系统</b>
+  <a href="login.html">登录</a>
+  <a href="register.html">注册</a>
+  <span class="nav-user" id="navUser"></span>
+</div>
+
+<div class="container">
+  <h2 class="title">智慧养殖监控系统</h2>
+  <p class="subtitle">存栏台账 · 环境曲线 · 设备控制　|　数据保存在本机浏览器，可接入下位机串口实时上传</p>
+
+  <!-- ===== 概览 ===== -->
+  <div class="card">
+    <h3>实时概览</h3>
+    <div class="grid" id="kpi"></div>
+  </div>
+
+  <!-- ===== 存栏统计 ===== -->
+  <div class="card">
+    <h3>养殖数量统计（存栏台账）</h3>
+    <p style="margin-bottom:12px">
+      存栏数由流水台账自动计算：<b>当前存栏 = 入库 − 出栏 − 淘汰</b>。
+      每录入一条记录，上方数字与下方柱状图立即更新。
+    </p>
+
+    <div class="grid" id="herdStat"></div>
+
+    <h4>录入一条存栏变动</h4>
+    <form id="herdForm">
+      <div class="form-row">
+        <div class="field">
+          <label for="hDate">日期</label>
+          <input type="date" id="hDate">
+        </div>
+        <div class="field">
+          <label for="hHouse">栋舍</label>
+          <select id="hHouse">
+            <option>1 号猪舍</option>
+            <option>2 号猪舍</option>
+            <option>牛舍</option>
+            <option>鸡舍</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="hBreed">品种</label>
+          <select id="hBreed">
+            <option>生猪</option>
+            <option>母猪</option>
+            <option>仔猪</option>
+            <option>肉牛</option>
+            <option>蛋鸡</option>
+            <option>肉鸡</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="hType">类型</label>
+          <select id="hType">
+            <option value="in">入库</option>
+            <option value="out">出栏</option>
+            <option value="cull">淘汰 / 死亡</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="hCount">数量（头 / 只）</label>
+          <input type="number" id="hCount" min="1" step="1" placeholder="如 20">
+        </div>
+        <div class="field">
+          <label for="hNote">备注</label>
+          <input type="text" id="hNote" placeholder="选填">
+        </div>
+        <button type="submit">添加记录</button>
+      </div>
+    </form>
+    <div class="msg" id="herdMsg"></div>
+
+    <h4>台账明细</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>日期</th><th>栋舍</th><th>品种</th><th>类型</th>
+          <th style="text-align:right">数量</th><th>来源</th><th>备注</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="herdTable"></tbody>
+    </table>
+
+    <h4>分栋舍存栏分布</h4>
+    <div class="chart-wrap">
+      <canvas id="barHouse" style="width:100%;height:220px"></canvas>
+    </div>
+
+    <h4>盘点核对</h4>
+    <div class="form-row">
+      <div class="field">
+        <label for="realCount">现场实盘头数</label>
+        <input type="number" id="realCount" min="0" step="1" placeholder="人工清点后的实际数量">
+      </div>
+      <button type="button" class="ghost" id="btnCheck">核对差异</button>
+      <button type="button" class="ghost" id="btnDemoVision">模拟一次视觉识别上报</button>
+    </div>
+    <div class="msg" id="checkMsg"></div>
+  </div>
+
+  <!-- ===== 环境数据 ===== -->
+  <div class="card">
+    <h3>舍内环境数据 <span class="badge badge-idle" id="srcBadge">模拟数据</span></h3>
+    <div class="grid" id="envStat"></div>
+
+    <h4>历史曲线</h4>
+    <div class="form-row">
+      <div class="field" style="max-width:180px">
+        <label for="envMetric">指标</label>
+        <select id="envMetric">
+          <option value="temp">温度 (℃)</option>
+          <option value="hum">湿度 (%)</option>
+          <option value="nh3">氨气 (ppm)</option>
+        </select>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="lineEnv" style="width:100%;height:220px"></canvas>
+    </div>
+
+    <h4>下位机接入</h4>
+    <p style="margin-bottom:10px">
+      支持两种上报格式，换行结束：<br>
+      ① JSON：<code>{"temp":24.5,"hum":62,"nh3":12}</code><br>
+      ② 键值对：<code>TEMP:24.5,HUM:62,NH3:12</code>
+    </p>
+    <div class="form-row">
+      <button type="button" id="btnSerial">连接串口（USB）</button>
+      <button type="button" class="ghost" id="btnSim">停止模拟</button>
+      <button type="button" class="ghost" id="btnClearEnv">清空曲线</button>
+    </div>
+    <div class="msg" id="serialMsg"></div>
+    <table id="rawTable" style="display:none">
+      <thead><tr><th>时间</th><th>原始报文</th><th>解析结果</th></tr></thead>
+      <tbody id="rawBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ===== 设备状态 ===== -->
+  <div class="card">
+    <h3>智能设备状态</h3>
+    <div class="switch-list" id="deviceList"></div>
+  </div>
+
+  <!-- ===== 场景可视化 ===== -->
+  <div class="card">
+    <h3>养殖场景可视化</h3>
+    <div class="scene">
+      <a href="小猪一家.webp" target="_blank">猪舍</a>
+      <a href="牛.webp" target="_blank">牛舍</a>
+      <a href="小鸡.jpg" target="_blank">鸡舍</a>
+    </div>
+    <p style="margin-top:12px">
+      说明：本页不做图像识别。若后续接入视觉点数模型，只需调用
+      <code>window.LivestockVision.recognize(imageFile)</code> 返回头数，
+      页面会自动写入一条来源为「视觉识别」的台账记录，存栏数随之更新。
+    </p>
+  </div>
+</div>
+
+<div class="footer">
+  <p>智慧养殖平台 © 2026</p>
+</div>
+
+<script src="app.js"></script>
+<script src="system.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>注册 - 智慧养殖平台</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 导航栏 -->
+<div class="nav">
+  <a href="index.html">首页</a>
+  <a href="system.html">养殖系统</a>
+  <a href="login.html">登录</a>
+  <b>注册</b>
+  <span class="nav-user" id="navUser"></span>
+</div>
+
+<div class="auth-box">
+  <h2>用户注册</h2>
+  <p class="tip">注册信息保存在本机浏览器，用于登录本平台</p>
+
+  <div class="msg" id="msg"></div>
+
+  <form id="regForm" autocomplete="off">
+    <div class="field">
+      <label for="username">用户名</label>
+      <input type="text" id="username" placeholder="3 位以上字母、数字或中文">
+    </div>
+    <div class="field">
+      <label for="phone">手机号</label>
+      <input type="tel" id="phone" placeholder="11 位手机号" maxlength="11">
+    </div>
+    <div class="field">
+      <label for="password">密码</label>
+      <input type="password" id="password" placeholder="至少 6 位" autocomplete="new-password">
+    </div>
+    <div class="strength"><i id="strengthBar"></i></div>
+    <div class="field">
+      <label for="password2">确认密码</label>
+      <input type="password" id="password2" placeholder="再次输入密码" autocomplete="new-password">
+    </div>
+
+    <button type="submit">注 册</button>
+  </form>
+
+  <p class="auth-link">已有账号？<a href="login.html">直接登录</a></p>
+</div>
+
+<div class="footer">
+  <p>智慧养殖平台 © 2026</p>
+</div>
+
+<script src="app.js"></script>
+<script>
+(function () {
+  const form = document.getElementById('regForm');
+  const msg  = document.getElementById('msg');
+  const bar  = document.getElementById('strengthBar');
+  const pwd  = document.getElementById('password');
+
+  function show(text, type) {
+    msg.textContent = text;
+    msg.className = 'msg show ' + type;
+  }
+
+  // 密码强度提示（仅前端提示，不做限制）
+  pwd.addEventListener('input', function () {
+    const v = pwd.value;
+    let score = 0;
+    if (v.length >= 6)  score++;
+    if (v.length >= 10) score++;
+    if (/[A-Za-z]/.test(v) && /\d/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const map = [
+      ['0',   '#e6ebe7'],
+      ['30%', '#d64545'],
+      ['55%', '#e08a0b'],
+      ['78%', '#7cb518'],
+      ['100%','#2f9e44']
+    ][score];
+    bar.style.width = map[0];
+    bar.style.background = map[1];
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const res = await SBP.register({
+      username: document.getElementById('username').value,
+      phone:    document.getElementById('phone').value,
+      password: pwd.value,
+      password2:document.getElementById('password2').value
+    });
+    if (!res.ok) return show(res.msg, 'err');
+
+    show(res.msg + '，正在跳转登录页…', 'ok');
+    sessionStorage.setItem('sbp_prefill', document.getElementById('username').value.trim());
+    setTimeout(() => { location.href = 'login.html'; }, 700);
+  });
+})();
+</script>
+</body>
+</html>
